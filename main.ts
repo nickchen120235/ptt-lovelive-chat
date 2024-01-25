@@ -3,7 +3,7 @@ import { parse } from "node-html-parser"
 
 const env = await load()
 const DISCORD_WEBHOOK_URL = env['DISCORD_WEBHOOK_URL']
-const kv = await Deno.openKv('./kv.db')
+const kv = await Deno.openKv()
 
 class HttpError extends Error {
   constructor(res: Response) {
