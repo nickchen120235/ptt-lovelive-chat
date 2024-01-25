@@ -12,7 +12,7 @@ class HttpError extends Error {
   }
 }
 
-Deno.cron('PTT LoveLive_Sip 閒聊', '*/10 * * * *', async () => {
+Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
   try {
     // load main page
     const res = await fetch('https://www.ptt.cc/bbs/LoveLive_Sip/index.html')
