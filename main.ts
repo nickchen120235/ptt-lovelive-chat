@@ -40,18 +40,20 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
         return type + user + content + time
       })
       console.log(`Got ${pushes.length} new pushes.`)
-      for (const push of pushes) {
-        const res = await fetch(DISCORD_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: post.innerText,
-            content: push
+      if (start !== 0) {
+        for (const push of pushes) {
+          const res = await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              username: post.innerText,
+              content: push
+            })
           })
-        })
-        if (!res.ok) throw new HttpError(res)
+          if (!res.ok) throw new HttpError(res)
+        }
       }
       await kv.set([post.innerText], start + pushes.length)
     }
