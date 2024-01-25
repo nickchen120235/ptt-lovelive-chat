@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "node-html-parser": "npm:node-html-parser@^6.1.12",
+    "dotenv": "https://deno.land/std@0.213.0/dotenv/mod.ts"
+  }
+}
