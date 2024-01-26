@@ -1,8 +1,6 @@
-import { load } from "dotenv"
 import { parse } from "node-html-parser"
 
-const env = await load()
-const DISCORD_WEBHOOK_URL = env['DISCORD_WEBHOOK_URL']
+const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL")!
 const kv = await Deno.openKv()
 
 class HttpError extends Error {
@@ -24,13 +22,14 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
     console.log(`Got ${posts.length} posts.`)
 
     for (const post of posts) {
-      console.log(`processing ${post.innerText}`)
+      const name = post.innerText.slice(5)
+      console.log(`processing ${name}`)
       // get pushes for every post
       const res = await fetch(`https://www.ptt.cc${post.getAttribute('href')}`)
       if (!res.ok) throw new HttpError(res)
       const html = await res.text()
       const root = parse(html)
-      const start = (await kv.get<number>([post.innerText])).value ?? 0
+      const start = (await kv.get<number>([name])).value ?? 0
       const pushes = root.querySelectorAll('div.push').slice(start).map(push => {
         const [_type, _user, _content, _time] = push.childNodes
         const type = _type.innerText
@@ -48,14 +47,14 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              username: post.innerText,
+              username: name,
               content: push
             })
           })
           if (!res.ok) throw new HttpError(res)
         }
       }
-      await kv.set([post.innerText], start + pushes.length)
+      await kv.set([name], start + pushes.length)
     }
   }
   catch (e) {
