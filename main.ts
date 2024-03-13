@@ -40,21 +40,33 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
       })
       console.log(`Got ${pushes.length} new pushes.`)
       if (start !== 0) {
+        let count = 0
         for (const push of pushes) {
-          const res = await fetch(DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              username: name,
-              content: push
+          try {  
+            const res = await fetch(DISCORD_WEBHOOK_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                username: name,
+                content: push
+              })
             })
-          })
-          if (!res.ok) throw new HttpError(res)
+            if (!res.ok) throw new HttpError(res)
+            count += 1;
+          }
+          catch (e) {
+            if (e instanceof HttpError) {
+              console.error(`${e.name}: ${e.message}`)
+              console.error('Not all new comments are sent!')
+            }
+          }
+          finally {
+            await kv.set([name], start + count)
+          }
         }
       }
-      await kv.set([name], start + pushes.length)
     }
   }
   catch (e) {
