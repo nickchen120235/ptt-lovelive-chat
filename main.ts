@@ -71,7 +71,7 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
             }
           }
           finally {
-            await kv.set([name], start + count)
+            await kv.set([name], start + pushes.length)
           }
         }
       }
