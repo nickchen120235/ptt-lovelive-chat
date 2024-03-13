@@ -4,9 +4,11 @@ const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL")!
 const kv = await Deno.openKv()
 
 class HttpError extends Error {
+  res: Response
   constructor(res: Response) {
     super(`Server returned ${res.status} when fetching ${res.url}`)
     this.name = this.constructor.name
+    this.res = res
   }
 }
 
@@ -59,6 +61,12 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
           catch (e) {
             if (e instanceof HttpError) {
               console.error(`${e.name}: ${e.message}`)
+              if (e.res.status === 429) {
+                const error = await e.res.json()
+                console.error('We\'re being rate-limited')
+                console.error(`${error['message']}, retry after ${error['retry_after']} sec`)
+                console.error(JSON.stringify(e.res.headers))
+              }
               console.error('Not all new comments are sent!')
             }
           }
