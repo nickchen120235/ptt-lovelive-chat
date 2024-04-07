@@ -75,6 +75,10 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
           await kv.set([name], start + pushes.length)
         }
       }
+      else {
+        console.log('New post')
+        await kv.set([name], pushes.length)
+      }
     }
   }
   catch (e) {
