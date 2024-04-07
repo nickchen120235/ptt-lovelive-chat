@@ -43,8 +43,8 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
       console.log(`Got ${pushes.length} new pushes.`)
       if (start !== 0) {
         let count = 0
-        for (const push of pushes) {
-          try {  
+        try {
+          for (const push of pushes) {
             const res = await fetch(DISCORD_WEBHOOK_URL, {
               method: 'POST',
               headers: {
@@ -58,21 +58,21 @@ Deno.cron('ptt-lovelive-chat', '*/10 * * * *', async () => {
             if (!res.ok) throw new HttpError(res)
             count += 1;
           }
-          catch (e) {
-            if (e instanceof HttpError) {
-              console.error(`${e.name}: ${e.message}`)
-              if (e.res.status === 429) {
-                const error = await e.res.json()
-                console.error('We\'re being rate-limited')
-                console.error(`${error['message']}, retry after ${error['retry_after']} sec`)
-                console.error(JSON.stringify(e.res.headers))
-              }
-              console.error('Not all new comments are sent!')
+        }
+        catch (e) {
+          if (e instanceof HttpError) {
+            console.error(`${e.name}: ${e.message}`)
+            if (e.res.status === 429) {
+              const error = await e.res.json()
+              console.error('We\'re being rate-limited')
+              console.error(`${error['message']}, retry after ${error['retry_after']} sec`)
+              console.error(JSON.stringify(e.res.headers))
             }
+            console.error('Not all new comments are sent!')
           }
-          finally {
-            await kv.set([name], start + pushes.length)
-          }
+        }
+        finally {
+          await kv.set([name], start + pushes.length)
         }
       }
     }
